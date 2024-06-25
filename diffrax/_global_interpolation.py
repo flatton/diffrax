@@ -457,7 +457,7 @@ def _linear_interpolation(
 ) -> Shaped[Array, " times *channels"]:
     ts = left_broadcast_to(ts, ys.shape)
 
-    if replace_nans_at_start is None:
+    if ys[0] is not None or replace_nans_at_start is None:
         y0 = ys[0]
     else:
         y0 = jnp.broadcast_to(replace_nans_at_start, ys[0].shape)
@@ -508,7 +508,7 @@ def linear_interpolation(
 
     ts = _check_ts(ts)
     fn = ft.partial(_linear_interpolation, fill_forward_nans_at_end, ts)
-    if replace_nans_at_start is None:
+    if ys[0] is not None or replace_nans_at_start is None:
         return jtu.tree_map(fn, ys)
     else:
         return jtu.tree_map(fn, ys, replace_nans_at_start)
@@ -594,7 +594,7 @@ def rectilinear_interpolation(
 
     ts = _check_ts(ts)
     new_ts = jnp.repeat(ts, 2, axis=0)[1:]
-    if replace_nans_at_start is None:
+    if ys[0] is not None or replace_nans_at_start is None:
         fn = ft.partial(_rectilinear_interpolation, None)
         new_ys = jtu.tree_map(fn, ys)
     else:
@@ -688,7 +688,7 @@ def _backward_hermite_coefficients(
         next_ys = fill_forward(next_ys)
 
     t0 = ts[0]
-    if replace_nans_at_start is None:
+    if ys[0] is not None or replace_nans_at_start is None:
         y0 = ys[0]
     else:
         y0 = jnp.broadcast_to(replace_nans_at_start, ys[0].shape)
@@ -777,13 +777,13 @@ def backward_hermite_coefficients(
         return tuple(ys for _ in range(4))
 
     if deriv0 is None:
-        if replace_nans_at_start is None:
+        if ys[0] is not None or replace_nans_at_start is None:
             coeffs = jtu.tree_map(fn, ys)
         else:
             _fn = lambda ys, replace_nans_at_start: fn(ys, None, replace_nans_at_start)
             coeffs = jtu.tree_map(_fn, ys, replace_nans_at_start)
     else:
-        if replace_nans_at_start is None:
+        if ys[0] is not None or replace_nans_at_start is None:
             coeffs = jtu.tree_map(fn, ys, deriv0)
         else:
             coeffs = jtu.tree_map(fn, ys, deriv0, replace_nans_at_start)

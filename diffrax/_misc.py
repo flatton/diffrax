@@ -64,7 +64,7 @@ def fill_forward(
     The fill-forwarded data.
     """
 
-    if replace_nans_at_start is None:
+    if ys[0] is not None or replace_nans_at_start is None:
         y0 = ys[0]
     else:
         y0 = jnp.broadcast_to(replace_nans_at_start, ys[0].shape)
